@@ -10,7 +10,6 @@ function login() {
     xhttp.onload = function () {
         if (xhttp.status === 200) {
             // Login successful, redirect to homepage
-            
             window.location.href = 'homepage.html';
         } else {
             // Login failed, display error message from the backend
@@ -18,6 +17,23 @@ function login() {
         }
     };
 }
+
+
+function logout() {
+    var xhttp = new XMLHttpRequest();
+    const url = "http://127.0.0.1:5000/logout";
+    xhttp.open("GET", url);
+    xhttp.setRequestHeader("Content-Type", "application/json");
+    xhttp.send();
+    xhttp.onload = function () {
+        if (xhttp.status === 200) {
+            window.location.replace('login.html'); // Redirect to login page
+        } else {
+            alert("Error: " + xhttp.responseText);
+        }
+    };
+}
+
 
 function submit(){
     var username = document.getElementById("username").value;
@@ -59,17 +75,3 @@ function submit(){
 //     fetchUsername();
 // };
 
-function logout() {
-    var xhttp = new XMLHttpRequest();
-    xhttp.open("GET", "/logout");
-    xhttp.send();
-    xhttp.onload = function () {
-        if (xhttp.status === 200) {
-            // Clear any local user-related data (if any)
-            // Redirect to login page or perform any other action
-            window.location.href = 'login.html'; // Example: Redirect to login page
-        } else {
-            alert("Error: " + xhttp.responseText);
-        }
-    };
-}
