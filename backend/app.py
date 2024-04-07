@@ -1,30 +1,27 @@
-from flask import Flask, jsonify, request
+from flask import Flask, jsonify, request, session, redirect, url_for
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 
 app = Flask(__name__)
 CORS(app)
 
+app.config['SECRET_KEY'] = 'your_secret_key_here'  # Replace with your secret key
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 db = SQLAlchemy(app)
 
-
-
 class Users(db.Model):
-    id = db.Column(db.Integer,primary_key = True)
+    id = db.Column(db.Integer, primary_key=True)
     username = db.Column(db.String(100), unique=True, nullable=False) 
-    password = db.Column(db.Integer, nullable=False)
+    password = db.Column(db.String(100), nullable=False)  # Change to String
 
     def __repr__(self):
-        return f'<Users{self.username}>'
-
+        return f'<Users {self.username}>'
 
 # Create the database tables
 with app.app_context():
     db.create_all()
-
 
 @app.route('/')
 def welcome():
@@ -35,7 +32,6 @@ def list_users():
     users = Users.query.all()
     user_list = [{'username': user.username} for user in users]
     return jsonify(users=user_list)
-
 
 @app.route('/login', methods=['POST'])
 def login():
@@ -48,9 +44,15 @@ def login():
 
     user = Users.query.filter_by(username=username, password=password).first()
     if user:
+        session['logged_in'] = True
         return jsonify(message="Login successful"), 200
     else:
         return jsonify(error="Invalid username or password"), 401
+
+@app.route('/logout', methods=['GET'])
+def logout():
+    session.pop('logged_in', None)
+    return redirect(url_for('welcome'))
 
 @app.route('/user', methods=['POST'])
 def submit():
@@ -69,7 +71,6 @@ def submit():
     db.session.add(new_user)
     db.session.commit()
     return jsonify("User successfully registered"), 200
-
 
 if __name__ == '__main__':
     app.run()
