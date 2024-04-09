@@ -82,7 +82,10 @@ with app.app_context():
 
 @app.route('/')
 def welcome():
-    return "<h1>Welcome to my backend!</h1>"
+    return redirect(url_for('login'))
+@app.route('/register')
+def register():
+    return render_template('createAccount.html')
     
 @app.route('/users', methods=['GET'])
 def list_users():
