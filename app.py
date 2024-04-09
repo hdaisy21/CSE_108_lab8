@@ -162,5 +162,14 @@ def submit():
     return jsonify(message="User successfully registered"), 200
 
 
+#admin page stuff
+#uses admin.html
+
+@app.route('/admin')
+def admin():
+
+    return render_template("admin.html")
+
+
 if __name__ == '__main__':
     app.run()
