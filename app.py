@@ -6,10 +6,10 @@ from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
 
 
-app = Flask(__name__, template_folder='templates', static_folder="static")
+app = Flask(__name__)
 CORS(app)
 
-admin = Admin(app)
+# admin = Admin(app)
 
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
@@ -33,35 +33,43 @@ class User(UserMixin, db.Model):
     username = db.Column(db.String(100), unique=True, nullable=False) 
     password = db.Column(db.String(100), nullable=False)  
     role = db.Column(db.String(100), nullable=False) 
+    enrolled = db.relationship('enrolled', backref='User', lazy=True)
+    def __repr__(self):
+        return '<User %r>' % self.username
     
-class adminUser(UserMixin, db.Model):
+
+
+class Admins(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
-    name = db.Column(db.String(100), nullable=False) 
+    name = db.Column(db.String(100), unique=True, nullable=False) 
     username = db.Column(db.String(100), nullable=False) 
     password = db.Column(db.String(100), nullable=False) 
     role = db.Column(db.String(100), nullable=False) 
     
-    
+
+
 class teacher(UserMixin, db.Model):
     id = db.Column(db.Integer, primary_key=True)
     name = db.Column(db.String(100), unique=True, nullable=False)
     username = db.Column(db.String(100), unique=True, nullable=False) 
     password = db.Column(db.String(100), nullable=False) 
-    role = db.Column(db.String(100), nullable=False) 
+    role = db.Column(db.String(100), nullable=False)
+    class_relation = db.relationship('classes', backref='teacher', lazy=True) 
 
-# class enrolled(UserMixin, db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     user_name = db.Column(db.String(100), db.ForeignKey('users.username'))  # Define foreign key relationship
-#     class_name = db.Column(db.String(100), db.ForeignKey('classes.name'))
-#     grade = db.Column(db.Float)
+class enrolled(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    username = db.Column(db.String(100), db.ForeignKey('user.username'))  # Corrected ForeignKey definition
+    class_name = db.Column(db.String(100), db.ForeignKey('classes.name'))
+    grade = db.Column(db.Float)
+    
 
-# class classes(UserMixin, db.Model):
-#     id = db.Column(db.Integer, primary_key=True)
-#     name = db.Column(db.String(100), unique=True, nullable=False)
-#     teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'))
-#     teacher_name = db.Column(db.String(100), nullable=False)
-#     enroll = db.relationship('enrolled', backref='classes', lazy=True)
-#     capacity = db.Column(db.Integer)
+class classes(UserMixin, db.Model):
+    id = db.Column(db.Integer, primary_key=True)
+    name = db.Column(db.String(100), unique=True, nullable=False)
+    teacher_id = db.Column(db.Integer, db.ForeignKey('teacher.id'))
+    teacher_name = db.Column(db.String(100), nullable=False)
+    enroll = db.relationship('enrolled', backref='classes', lazy=True)
+    capacity = db.Column(db.Integer)
 
     
 
@@ -70,10 +78,11 @@ with app.app_context():
     db.create_all()
 
 
+
+
 @app.route('/')
 def welcome():
-    return render_template("login.html")
-
+    return "<h1>Welcome to my backend!</h1>"
     
 @app.route('/users', methods=['GET'])
 def list_users():
@@ -97,34 +106,10 @@ def login():
         if user:
             login_user(user)
             print(user.role)
-            return jsonify(role=user.role)
+            return jsonify(role=user.role, name=user.name)
     else:
         return jsonify(error="Invalid username or password"), 401
     
-
-# @app.route('/admin/dashboard', methods=['GET'])
-# def admin_dashboard():
-#     if current_user.role == 'admin':
-#         return render_template('admin_dashboard.html')
-#     else:
-#         return redirect(url_for('login'))
-
-# @app.route('/teacher/dashboard', methods=['GET'])
-# @login_required
-# def teacher_dashboard():
-#     if current_user.role == 'teacher':
-#         return render_template('teacher_dashboard.html')
-#     else:
-#         return redirect(url_for('login'))
-
-# @app.route('/student/dashboard', methods=['GET'])
-# @login_required
-# def student_dashboard():
-#     if current_user.role == 'student':
-#         return render_template('student_dashboard.html')
-#     else:
-#         return redirect(url_for('login'))
-
 
 
 @app.route('/logout', methods=['GET'])
@@ -161,19 +146,6 @@ def submit():
     db.session.commit()
     return jsonify(message="User successfully registered"), 200
 
-
-#admin page stuff
-#uses admin.html
-
-@app.route('/admin')
-def admin():
-
-    return render_template("admin.html")
-
-
-#
-#
-# elvis
 
 if __name__ == '__main__':
     app.run()
