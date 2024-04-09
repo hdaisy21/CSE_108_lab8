@@ -4,12 +4,12 @@ from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
 from flask_admin import Admin
 from flask_admin.contrib.sqla import ModelView
+#from models import User, Admins, teacher, enrolled, classes
 
 
 app = Flask(__name__)
 CORS(app)
 
-# admin = Admin(app)
 
 
 app.config['SQLALCHEMY_DATABASE_URI'] = 'sqlite:///site.db'
@@ -77,7 +77,20 @@ class classes(UserMixin, db.Model):
 with app.app_context():
     db.create_all()
 
+#Initialize Flask-Admin
+admin = Admin(app)
 
+# Register views for your models with Flask-Admin
+admin.add_view(ModelView(User, db.session))
+admin.add_view(ModelView(Admins, db.session))
+admin.add_view(ModelView(teacher, db.session))
+admin.add_view(ModelView(enrolled, db.session))
+admin.add_view(ModelView(classes, db.session))  
+
+# @app.route('/admin')
+# def admin():
+
+#     return render_template('admin_dashboard.html')
 
 
 @app.route('/')
