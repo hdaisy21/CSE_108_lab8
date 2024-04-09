@@ -1,8 +1,8 @@
-from flask import Flask, jsonify, request, session, redirect, url_for
+from flask import Flask, jsonify, request, session, redirect, url_for, render_template
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 
-app = Flask(__name__)
+app = Flask(__name__, template_folder='templates', static_folder="static")
 CORS(app)
 
 app.config['SECRET_KEY'] = 'your_secret_key_here'  # Replace with your secret key
@@ -25,7 +25,7 @@ with app.app_context():
 
 @app.route('/')
 def welcome():
-    return "Welcome to my backend on Flask!"
+    return render_template("login.html")
 
 @app.route('/users', methods=['GET'])
 def list_users():
