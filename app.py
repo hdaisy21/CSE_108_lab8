@@ -1,8 +1,4 @@
-<<<<<<< HEAD:app.py
-from flask import Flask, jsonify, request, session, redirect, url_for, render_template
-=======
 from flask import Flask, jsonify, request, redirect, url_for, render_template, session
->>>>>>> c73ff99a5a5af48fb3c03e46d6289145d26691be:backend/app.py
 from flask_cors import CORS
 from flask_sqlalchemy import SQLAlchemy
 from flask_login import UserMixin, login_user, LoginManager, login_required, logout_user, current_user
@@ -76,13 +72,9 @@ with app.app_context():
 
 @app.route('/')
 def welcome():
-<<<<<<< HEAD:app.py
     return render_template("login.html")
 
-=======
-    return "<h1>Welcome to my backend!</h1>"
     
->>>>>>> c73ff99a5a5af48fb3c03e46d6289145d26691be:backend/app.py
 @app.route('/users', methods=['GET'])
 def list_users():
     users = User.query.all()
