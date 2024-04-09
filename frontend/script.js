@@ -9,69 +9,57 @@ function login() {
     xhttp.send(JSON.stringify(body));
     xhttp.onload = function () {
         if (xhttp.status === 200) {
-            // Login successful, redirect to homepage
-            window.location.href = 'homepage.html';
+        var responseObj = JSON.parse(xhttp.responseText);
+        var role = responseObj.role;
+        alert("Logged in as: " + role)
+        if (role == 'admin')
+            window.location.href = 'admin_dashboard.html'
+        if (role == 'teacher')
+            window.location.href = 'teacher_dashboard.html';
+        if (role == 'user')
+            window.location.href = 'teacher_dashboard.html';
         } else {
-            // Login failed, display error message from the backend
-            alert("Error: " + xhttp.responseText);
+            alert("Error: " + xhttp.responseText); // Display error message from backend
         }
     };
 }
-
 
 function logout() {
     var xhttp = new XMLHttpRequest();
     const url = "http://127.0.0.1:5000/logout";
     xhttp.open("GET", url);
-    xhttp.setRequestHeader("Content-Type", "application/json");
     xhttp.send();
     xhttp.onload = function () {
         if (xhttp.status === 200) {
             window.location.replace('login.html'); // Redirect to login page
         } else {
-            alert("Error: " + xhttp.responseText);
+            alert("Error: " + xhttp.responseText); // Display error message from backend
         }
     };
 }
 
-
-function submit(){
+function submit() {
+    var name = document.getElementById("name").value;
     var username = document.getElementById("username").value;
     var password = document.getElementById("password").value;
+    var role = document.getElementById("role").value;
+
     var xhttp = new XMLHttpRequest();
     const url = "http://127.0.0.1:5000/user";
-    //const url = "https://amhep.pythonanywhere.com/grades";
-    const async = true;
     xhttp.open("POST", url);
     xhttp.setRequestHeader("Content-Type", "application/json");
-    const body ={"username": username, "password": password};
-    xhttp.send(JSON.stringify(body));
-    xhttp.onload = function() {
-    if (xhttp.status >= 200 && xhttp.status < 300) {
-        alert(xhttp.responseText);
-    } else {
-        alert("Error: " + xhttp.responseText);
-    } 
+    const body = {
+        "name": name,
+        "username": username,
+        "password": password,
+        "role": role
     };
-
+    xhttp.send(JSON.stringify(body));
+    xhttp.onload = function () {
+        if (xhttp.status >= 200 && xhttp.status < 300) {
+            alert("User successfully registered"); // Alert success message
+        } else {
+            alert("Error: " + xhttp.responseText); // Display error message from backend
+        }
+    };
 }
-
-// function fetchUsername() {
-//     var xhttp = new XMLHttpRequest();
-//     xhttp.open("GET", "/username");
-//     xhttp.send();
-//     xhttp.onload = function () {
-//         if (xhttp.status === 200) {
-//             var username = JSON.parse(xhttp.responseText).username;
-//             document.getElementById("username-placeholder").innerText = username;
-//         } else {
-//             console.error("Error fetching username: " + xhttp.responseText);
-//         }
-//     };
-// }
-
-// // Call fetchUsername() when the page loads
-// window.onload = function () {
-//     fetchUsername();
-// };
-
