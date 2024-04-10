@@ -71,6 +71,122 @@ class classes(UserMixin, db.Model):
     enroll = db.relationship('enrolled', backref='classes', lazy=True)
     capacity = db.Column(db.Integer)
 
+@app.route('/student/<id>', methods=['DELETE'])
+def delete_user(id):
+    user = User.query.get(id)
+    if not user:
+        return jsonify(error="User not found"), 404
+    
+    db.session.delete(user)
+    db.session.commit()
+    return jsonify(message="User deleted successfully"), 200
+
+@app.route('/teacher/<id>', methods=['DELETE'])
+def delete_teacher(id):
+    teacher = teacher.query.get(id)
+    if not teacher:
+        return jsonify(error="User not found"), 404
+    
+    db.session.delete(teacher)
+    db.session.commit()
+    return jsonify(message="teacher deleted successfully"), 200
+
+@app.route('/admins/<id>', methods=['DELETE'])
+def delete_Admin(id):
+    admins= Admins.query.get(id)
+    if not admins:
+        return jsonify(error="Admin not found"), 404
+    
+    db.session.delete(admins)
+    db.session.commit()
+    return jsonify(message="Admin deleted successfully"), 200
+
+def is_logged_in():
+    return current_user.is_authenticated
+
+#student
+@app.route('/user/<id>/courses', methods=['GET'])
+def get_user_courses(id):
+    user = User.query.get(id)
+    if not user:
+        return jsonify(error="User not found"), 404
+    user_courses = [course.name for course in user.enrolled_courses]
+    return jsonify(courses=user_courses), 200
+
+@app.route('/classes', methods=['GET'])
+def get_all_classes():
+    all_classes = classes.query.all()
+    class_list = [{'name': cls.name, 'teacher': cls.teacher_name, 'capacity': cls.capacity, 'students_enrolled': len(cls.students)} for cls in all_classes]
+    return jsonify(classes=class_list), 200
+
+@app.route('/available_classes', methods=['GET'])
+def get_available_classes():
+    all_classes = classes.query.all()
+    available_classes = [{'name': cls.name, 'teacher': cls.teacher_name, 'capacity': cls.capacity, 'students_enrolled': len(cls.students)} for cls in all_classes if len(cls.students) < cls.capacity]
+    return jsonify(classes=available_classes), 200
+
+
+
+# Add route to remove a user from a class
+@app.route('/unenroll', methods=['POST'])
+@login_required
+def unenroll_from_class():
+    if not is_logged_in():
+        return jsonify(error="You must be logged in to access this resource"), 401
+    
+    data = request.json
+    class_name = data.get('class_name')
+
+    # Check if the class exists
+    cls = classes.query.filter_by(name=class_name).first()
+    if not cls:
+        return jsonify(error="Class not found"), 404
+    
+    # Check if the user is enrolled in the class
+    if cls in current_user.enrolled_courses:
+        # Remove the user from the class
+        current_user.enrolled_courses.remove(cls)
+        db.session.commit()
+        return jsonify(message="Successfully unenrolled from class"), 200
+    else:
+        return jsonify(error="You are not enrolled in this class"), 400
+
+#teacher
+@app.route('/my_courses', methods=['GET'])
+@login_required
+def get_teacher_courses():
+    if not is_logged_in():
+        return jsonify(error="You must be logged in to access this resource"), 401
+    
+    if current_user.role != 'teacher':
+        return jsonify(error="You must be a teacher to access this resource"), 403
+    
+    teacher_courses = [{'name': cls.name, 'capacity': cls.capacity, 'students_enrolled': len(cls.students)} for cls in current_user.class_relation]
+    return jsonify(courses=teacher_courses), 200
+
+
+@app.route('/enroll', methods=['POST'])
+@login_required
+def enroll_in_class():
+    if not is_logged_in():
+        return jsonify(error="You must be logged in to access this resource"), 401
+    
+    data = request.json
+    class_name = data.get('class_name')
+
+    # Check if the class exists
+    cls = classes.query.filter_by(name=class_name).first()
+    if not cls:
+        return jsonify(error="Class not found"), 404
+    
+    # Check if the class has reached capacity
+    if len(cls.students) >= cls.capacity:
+        return jsonify(error="Class has reached its capacity"), 400
+    
+    # Enroll the user in the class
+    current_user.enrolled_courses.append(cls)
+    db.session.commit()
+    return jsonify(message="Successfully enrolled in class"), 200
     
 
 # Create the database tables
