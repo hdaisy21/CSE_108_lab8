@@ -1,1 +1,8 @@
+1.Create a flask enviorment  in Visual studio code 
 
+https://code.visualstudio.com/docs/python/python-tutorial 
+
+2.add the app.py file to enviorment 
+
+3.create a folder called templates and add all the other files into templates folder 
+html, css, and js 
